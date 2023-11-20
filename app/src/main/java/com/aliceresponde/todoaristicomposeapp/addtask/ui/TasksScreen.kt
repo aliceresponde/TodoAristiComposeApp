@@ -1,12 +1,18 @@
 package com.aliceresponde.todoaristicomposeapp.addtask.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -22,25 +28,85 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import javax.inject.Inject
+import com.aliceresponde.todoaristicomposeapp.addtask.ui.model.TaskModel
 
 @Composable
 fun TasksScreen(viewModel: TasksViewModel) {
     Box(modifier = Modifier.fillMaxSize()) {
         val isDialogVisible by viewModel.isDialogVisible.observeAsState(false)
 
-        AddTaskDialog(modifier = Modifier.align(Alignment.Center).padding(16.dp),
+        AddTaskDialog(modifier = Modifier
+            .align(Alignment.Center)
+            .padding(16.dp),
             isVisible = isDialogVisible,
             onDismiss = { viewModel.closeDialog() },
             onAddTask = { viewModel.addTask(it) }
         )
 
+        TaskList(viewModel)
+
         AddFavButton(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
             onClick = { viewModel.showDialog() })
+    }
+}
+
+@Composable
+fun TaskList(viewModel: TasksViewModel) {
+    val data = viewModel.tasks
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(data, key = TaskModel::id) { task ->
+            TaskItem(
+                task = task,
+                onTaskChecked = { viewModel.onTaskChecked(it) },
+                onDeleteTask = { viewModel.onDeleteTask(it) }
+            )
+        }
+    }
+}
+
+@Composable
+fun TaskItem(
+    task: TaskModel,
+    onTaskChecked: (TaskModel) -> Unit,
+    onDeleteTask: (TaskModel) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { onDeleteTask(task) }
+                )
+            },
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp), verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = Icons.Filled.List, contentDescription = "Task icon")
+            Text(
+                text = task.description,
+                modifier = Modifier.weight(1f),
+                maxLines = 1
+            )
+            Checkbox(
+                checked = task.isDone,
+                onCheckedChange = { onTaskChecked(task) }
+            )
+        }
     }
 }
 
@@ -59,12 +125,20 @@ fun AddFavButton(modifier: Modifier, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTaskDialog(modifier: Modifier, isVisible: Boolean, onDismiss: () -> Unit, onAddTask: (String) -> Unit) {
+fun AddTaskDialog(
+    modifier: Modifier,
+    isVisible: Boolean,
+    onDismiss: () -> Unit,
+    onAddTask: (String) -> Unit
+) {
     var taskContent by rememberSaveable { mutableStateOf("") }
     if (isVisible) {
         Dialog(onDismissRequest = { onDismiss() }) {
             Column(
-                modifier = modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(8.dp)).padding(16.dp)
+                modifier = modifier
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .padding(16.dp)
             ) {
                 Text(
                     text = "Add task",
@@ -92,7 +166,10 @@ fun AddTaskDialog(modifier: Modifier, isVisible: Boolean, onDismiss: () -> Unit,
                         taskContent = ""
                     },
                     shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.align(Alignment.CenterHorizontally).fillMaxWidth()
+                    enabled = taskContent.isNotBlank(),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .fillMaxWidth()
                 ) { Text(text = "Add") }
             }
         }
