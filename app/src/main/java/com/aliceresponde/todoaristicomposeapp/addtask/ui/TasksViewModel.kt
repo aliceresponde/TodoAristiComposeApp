@@ -1,6 +1,5 @@
 package com.aliceresponde.todoaristicomposeapp.addtask.ui
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -31,7 +30,7 @@ class TasksViewModel @Inject constructor() : ViewModel() {
 
     fun onTaskChecked(task: TaskModel) {
         val index = _tasks.indexOf(task)
-        _tasks[index] = task.copy(isDone = !task.isDone)
+        _tasks[index] = task.copy(isCompleted = !task.isCompleted)
     }
 
     fun onDeleteTask(task: TaskModel) {

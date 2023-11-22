@@ -103,7 +103,7 @@ fun TaskItem(
                 maxLines = 1
             )
             Checkbox(
-                checked = task.isDone,
+                checked = task.isCompleted,
                 onCheckedChange = { onTaskChecked(task) }
             )
         }
