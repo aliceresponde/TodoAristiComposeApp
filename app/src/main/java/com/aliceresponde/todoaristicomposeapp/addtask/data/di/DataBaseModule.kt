@@ -1,4 +1,4 @@
-package com.aliceresponde.todoaristicomposeapp.addtask.data.local.di
+package com.aliceresponde.todoaristicomposeapp.addtask.data.di
 
 import android.content.Context
 import androidx.room.Room
